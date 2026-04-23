@@ -28,8 +28,8 @@ for arch in "amd64" "arm64"; do
   [ $? -eq 0 ] && manifest=`echo "--amend \"${userName}/${dockerProject}_${arch}:${sniVer}\" ${manifest}" |sed 's/\ \+$//'`
 done
 
-[ -n "$manifest" ] && eval `echo "docker manifest create \"${userName}/${dockerProject}:${sniVer}\" $manifest"` && docker manifest push -p "${userName}/${dockerProject}:${sniVer}"
-[ -n "$manifest" ] && [ "${withLatest}" = "1" ] && eval `echo "docker manifest create \"${userName}/${dockerProject}:latest\" $manifest"` && docker manifest push -p "${userName}/${dockerProject}:latest"
+[ -n "$userName" ] && [ -n "$manifest" ] && eval `echo "docker manifest create \"${userName}/${dockerProject}:${sniVer}\" $manifest"` && docker manifest push -p "${userName}/${dockerProject}:${sniVer}"
+[ -n "$userName" ] && [ -n "$manifest" ] && [ "${withLatest}" = "1" ] && eval `echo "docker manifest create \"${userName}/${dockerProject}:latest\" $manifest"` && docker manifest push -p "${userName}/${dockerProject}:latest"
 
 
 # docker pull ocserv/ocserv:latest
