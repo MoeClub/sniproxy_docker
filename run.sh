@@ -10,7 +10,7 @@ udns=`printenv UDNS`
 [ -n "$udns" ] || udns="8.8.4.4"
 uport=`printenv UPROT`
 [ -n "$uport" ] || uport="53"
-echo "UP: ${udns}:${uport}"
+echo "DNS: ${udns}:${uport}"
 port=`printenv PORT`
 [ -n "$port" ] || port="53"
 echo "Public: ${addr}:${port}"
