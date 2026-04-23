@@ -13,10 +13,13 @@ uport=`printenv UPROT`
 [ -n "$uport" ] || uport="53"
 echo "UP: ${udns}: ${$uport}"
 port=`printenv PROT`
-[ -n "$port" ] || port="3535"
+[ -n "$port" ] || port="53"
 echo "Public: ${addr}:${port}"
 
 /usr/sbin/dnsmasq -v
+if [ -f /etc/sniproxy/dnsmasq-up.conf ]; then
+  /usr/sbin/dnsmasq -C /etc/sniproxy/dnsmasq-up.conf
+fi
 if [ -f /etc/sniproxy/dnsmasq-lo.conf ]; then
   sed -i "s/^interface=.*/interface=${device}/" "/etc/sniproxy/dnsmasq-lo.conf"
   sed -i "s/^port=.*/port=${port}/" "/etc/sniproxy/dnsmasq-lo.conf"
@@ -28,11 +31,8 @@ if [ -f /etc/sniproxy/dnsmasq-lo.conf ]; then
 
   /usr/sbin/dnsmasq -C /etc/sniproxy/dnsmasq-lo.conf
 fi
-if [ -f /etc/sniproxy/dnsmasq-up.conf ]; then
-  /usr/sbin/dnsmasq -C /etc/sniproxy/dnsmasq-up.conf
-fi
 
 /usr/sbin/sniproxy -V
-echo `printenv TABLE`
-echo `printenv PORT`
-
+if [ -f /etc/sniproxy/sniproxy.conf ]; then
+  /usr/sbin/sniproxy -c /etc/sniproxy/sniproxy.conf -f
+fi
