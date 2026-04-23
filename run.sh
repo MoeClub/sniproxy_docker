@@ -10,10 +10,26 @@ udns=`printenv UDNS`
 [ -n "$udns" ] || udns="8.8.4.4"
 uport=`printenv UPROT`
 [ -n "$uport" ] || uport="53"
-echo "UP: ${udns}: ${$uport}"
-port=`printenv PROT`
+echo "UP: ${udns}:${uport}"
+port=`printenv PORT`
 [ -n "$port" ] || port="53"
 echo "Public: ${addr}:${port}"
+
+
+/usr/sbin/sniproxy -V
+if [ -f /etc/sniproxy/sniproxy.conf ]; then
+  for item in `printenv "TABLE" |sed 's/;;/\n/g'`; do
+    echo "${item}" |grep -q ";" || continue
+    src="${item%%;*}"
+    dst="${item#*;}"
+    tagret="${src//./\\.} $dst"
+    echo "${tagret}" | grep -q '^*' && line=".${tagret//\\/\\\\}" || line="${tagret//\\/\\\\}"
+    sed -i "/\.\*\ \*/i\ \ \ \ ${line}" /etc/sniproxy/sniproxy.conf
+    if [ -f "/etc/sniproxy/dnsmasq-lo.conf" ]; then
+      echo "${src}" |grep -q "\." && tbl=`echo "${src}" |sed 's/^\*//' |sed 's/^\.//' |sed 's/\.$//'` && echo "server=/${tbl}/${udns}#${uport}" >>"/etc/sniproxy/dnsmasq-lo.conf"
+    fi
+  done
+fi
 
 /usr/sbin/dnsmasq -v
 if [ -f /etc/sniproxy/dnsmasq-up.conf ]; then
@@ -25,21 +41,11 @@ if [ -f /etc/sniproxy/dnsmasq-lo.conf ]; then
   sed -i "s/^address=.*/address=\/#\/${addr}/" "/etc/sniproxy/dnsmasq-lo.conf"
 
   for item in `printenv "DNS" |sed 's/;/\n/g'`; do
-    echo "${item}" |grep -q "\." && echo "server=/${item}/${udns}#${uport}" >"/etc/sniproxy/dnsmasq-lo.conf"
+    echo "${item}" |grep -q "\." && echo "server=/${item}/${udns}#${uport}" >>"/etc/sniproxy/dnsmasq-lo.conf"
   done
 
   /usr/sbin/dnsmasq -C /etc/sniproxy/dnsmasq-lo.conf
 fi
 
-/usr/sbin/sniproxy -V
-if [ -f /etc/sniproxy/sniproxy.conf ]; then
-  for item in `printenv "TABLE" |sed 's/;;/\n/g'`; do
-    echo "${item}" |grep -q ";" || continue
-    src=`echo "${item}" |sed 's/;/\n/' |head -n1`
-    dst=`echo "${item}" |sed 's/;/\n/' |tail -n1`
-    src=`echo "${src}" |sed 's/\./\\\./g' |sed 's/^*/\.*/'`
-    sed -i "/\.\*\ \*/i    ${src} ${dst}" /etc/sniproxy/sniproxy.conf
-  done
 
-  /usr/sbin/sniproxy -c /etc/sniproxy/sniproxy.conf -f
-fi
+/usr/sbin/sniproxy -c /etc/sniproxy/sniproxy.conf -f
