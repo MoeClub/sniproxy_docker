@@ -23,7 +23,7 @@ fi
 if [ -f /etc/sniproxy/dnsmasq-lo.conf ]; then
   sed -i "s/^interface=.*/interface=${device}/" "/etc/sniproxy/dnsmasq-lo.conf"
   sed -i "s/^port=.*/port=${port}/" "/etc/sniproxy/dnsmasq-lo.conf"
-  sed -i "s/^address=.*/address=${addr}/" "/etc/sniproxy/dnsmasq-lo.conf"
+  sed -i "s/^address=.*/address=\/#\/${addr}/" "/etc/sniproxy/dnsmasq-lo.conf"
 
   for item in `printenv "DNS" |sed 's/;/\n/g'`; do
     echo "${item}" |grep -q "\." && echo "server=/${item}/${udns}#${uport}" >"/etc/sniproxy/dnsmasq-lo.conf"
