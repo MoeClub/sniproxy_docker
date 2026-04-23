@@ -16,6 +16,7 @@ if [ "$sVer" != "0" ]; then
     [ $? -eq 0 ] || exit 1
   }
 
+  rm -rf /etc/sniproxy
   rm -rf /etc/sniproxy.conf
   rm -rf /usr/sbin/sniproxy
   rm -rf /usr/share/man/man5/sniproxy.conf.5
