@@ -34,5 +34,13 @@ fi
 
 /usr/sbin/sniproxy -V
 if [ -f /etc/sniproxy/sniproxy.conf ]; then
+  for item in `printenv "TABLE" |sed 's/;;/\n/g'`; do
+    echo "${item}" |grep -q ";" || continue
+    src=`echo "${item}" |sed 's/;/\n/' |head -n1`
+    dst=`echo "${item}" |sed 's/;/\n/' |tail -n1`
+    src=`echo "${src}" |sed 's/\./\\\./g' |sed 's/^*/\.*/'`
+    sed -i "/\.\*\ \*/i    ${src} ${dst}" /etc/sniproxy/sniproxy.conf
+  done
+
   /usr/sbin/sniproxy -c /etc/sniproxy/sniproxy.conf -f
 fi
