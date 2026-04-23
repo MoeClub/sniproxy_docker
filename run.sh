@@ -3,13 +3,36 @@
 # [ ! -e "/dev/net/tun" ] && echo "try with --privileged " && exit 1
 device=`ls -1 /sys/class/net| grep -v '^lo$' |head -n 1`
 [ -n "$device" ] || exit 1
-addr=`wget -qO- https://checkip.amazonaws.com/`
+addr=`printenv ADDR`
+[ -n "$addr" ] || addr=`wget -qO- https://checkip.amazonaws.com/`
 [ -n "$addr" ] || addr=`ip -4 addr show "$net" | awk '/inet /{print $2}' | cut -d/ -f1`
 [ -n "$addr" ] && echo "Addr: ${addr}"
+udns=`printenv UDNS`
+[ -n "$udns" ] || udns="8.8.4.4"
+uport=`printenv UPROT`
+[ -n "$uport" ] || uport="53"
+echo "UP: ${udns}: ${$uport}"
+port=`printenv PROT`
+[ -n "$port" ] || port="3535"
+echo "Public: ${addr}:${port}"
 
 /usr/sbin/dnsmasq -v
-[ -f /etc/sniproxy/dnsmasq-lo.conf ] && /usr/sbin/dnsmasq -C /etc/sniproxy/dnsmasq-lo.conf
-[ -f /etc/sniproxy/dnsmasq-up.conf ] && /usr/sbin/dnsmasq -C /etc/sniproxy/dnsmasq-up.conf
+if [ -f /etc/sniproxy/dnsmasq-lo.conf ]; then
+  sed -i "s/^interface=.*/interface=${device}/" "/etc/sniproxy/dnsmasq-lo.conf"
+  sed -i "s/^port=.*/port=${port}/" "/etc/sniproxy/dnsmasq-lo.conf"
+  sed -i "s/^address=.*/address=${addr}/" "/etc/sniproxy/dnsmasq-lo.conf"
+
+  for item in `printenv "DNS" |sed 's/;/\n/g'`; do
+    echo "${item}" |grep -q "\." && echo "server=/${item}/${udns}#${uport}" >"/etc/sniproxy/dnsmasq-lo.conf"
+  done
+
+  /usr/sbin/dnsmasq -C /etc/sniproxy/dnsmasq-lo.conf
+fi
+if [ -f /etc/sniproxy/dnsmasq-up.conf ]; then
+  /usr/sbin/dnsmasq -C /etc/sniproxy/dnsmasq-up.conf
+fi
+
 /usr/sbin/sniproxy -V
 echo `printenv TABLE`
+echo `printenv PORT`
 
