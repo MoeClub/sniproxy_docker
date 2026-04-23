@@ -33,6 +33,7 @@ fi
 
 /usr/sbin/dnsmasq -v
 if [ -f /etc/sniproxy/dnsmasq-up.conf ]; then
+  sed -i "s/^server=.*/server=${udns}#${uport}/" "/etc/sniproxy/dnsmasq-up.conf"
   /usr/sbin/dnsmasq -C /etc/sniproxy/dnsmasq-up.conf
 fi
 if [ -f /etc/sniproxy/dnsmasq-lo.conf ]; then
