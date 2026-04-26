@@ -11,7 +11,7 @@ dockerName="${dockerProject}_buildx"
 
 manifest=""
 for arch in "amd64" "arm64"; do
-  docker run --privileged --rm tonistiigi/binfmt --install "${arch}"
+  docker run --rm --platform "linux/${arch}" "${dockerBase}" apk --print-arch >/dev/null 2>&1 || docker run --privileged --rm tonistiigi/binfmt --install "${arch}"
   docker rm -f "${dockerName}" >/dev/null 2>&1 || true
   docker run --platform "linux/${arch}" --name "${dockerName}" -id -v /mnt:/mnt "${dockerBase}"
   docker exec "${dockerName}" /bin/sh /mnt/commit.sh "${oneVer}" "${twoVer}"
