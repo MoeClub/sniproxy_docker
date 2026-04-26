@@ -2,6 +2,7 @@
 
 device=`ls -1 /sys/class/net| grep -v '^lo$' |head -n 1`
 [ -n "$device" ] || exit 1
+[ -n "${TZ}" ] && -e "/usr/share/zoneinfo/${TZ}" && cp -rf "/usr/share/zoneinfo/${TZ}" /etc/localtime
 addr=`printenv ADDR`
 [ -n "$addr" ] || addr=`wget -qO- https://checkip.amazonaws.com/`
 [ -n "$addr" ] || addr=`ip -4 addr show "$net" | awk '/inet /{print $2}' | cut -d/ -f1`
