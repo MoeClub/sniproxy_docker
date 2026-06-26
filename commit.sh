@@ -3,7 +3,7 @@
 sniVer="${1:-0.7.0}"
 dnsVer="${2:-2.92}"
 
-apk add wget tzdata iproute2 openssl iptables
+apk add --no-cache wget tzdata iproute2 openssl iptables
 cp -rf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 sh /mnt/update.sh "${sniVer}" "${dnsVer}"
 mkdir -p /etc/sniproxy
