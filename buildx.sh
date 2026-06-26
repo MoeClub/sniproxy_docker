@@ -2,7 +2,7 @@
 set -e
 
 oneVer="${1:-0.7.0}"
-twoVer="${2:-2.92}"
+twoVer="${2:-2.93}"
 withLatest="${3:-0}"
 dockerProject="sniproxy"
 dockerBase="alpine:3.20"
