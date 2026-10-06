@@ -3,7 +3,8 @@
 if [ ! -f "/.initialized" ]; then
 
   [ -n "${TZ}" ] && [ -e "/usr/share/zoneinfo/${TZ}" ] && cp -rf "/usr/share/zoneinfo/${TZ}" /etc/localtime
-  device=`ls -1 /sys/class/net| grep -v '^lo$' |head -n 1`
+  device=`printenv DEVICE`
+  [ -n "$device" ] || device=`ls -1 /sys/class/net| grep -v '^lo$' |head -n 1`
   [ -n "$device" ] || exit 1
   addr=`printenv ADDR`
   [ -n "$addr" ] || addr=`wget -qO- https://checkip.amazonaws.com/`
