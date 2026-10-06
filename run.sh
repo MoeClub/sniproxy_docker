@@ -7,28 +7,42 @@ if [ ! -f "/.initialized" ]; then
   [ -n "$device" ] || exit 1
   addr=`printenv ADDR`
   [ -n "$addr" ] || addr=`wget -qO- https://checkip.amazonaws.com/`
-  [ -n "$addr" ] || addr=`ip -4 addr show "$net" | awk '/inet /{print $2}' | cut -d/ -f1`
+  [ -n "$addr" ] || addr=`ip -4 addr show "$device" | awk '/inet /{print $2}' | cut -d/ -f1`
   udns=`printenv UDNS`
   [ -n "$udns" ] || udns="8.8.4.4"
-  uport=`printenv UPROT`
+  uport=`printenv UPORT`
   [ -n "$uport" ] || uport="53"
   echo "DNS: ${udns}:${uport}"
   port=`printenv PORT`
   [ -n "$port" ] || port="53"
   echo "Public: ${addr}:${port}"
+  fallback=`printenv FALLBACK`
+  [ "$fallback" == "0" ] || fallback="1"
 
   if [ -f /etc/sniproxy/sniproxy.conf ]; then
     for item in `printenv "TABLE" |sed 's/;/\n/g'`; do
       echo "${item}" |grep -q "," || continue
       src="${item%%,*}"
       dst="${item#*,}"
-      tagret="${src//./\\.} $dst"
-      echo "${tagret}" | grep -q '^*' && line=".${tagret//\\/\\\\}" || line="${tagret//\\/\\\\}"
-      sed -i "/\.\*\ \*/i\ \ \ \ ${line}" /etc/sniproxy/sniproxy.conf
+      [ -n "$dst" ] || dst="*"
+      tagret="${src//./\\.}\$ ${dst}"
+      echo "${tagret}" | grep -q '^*'
+      if [ "$?" -eq "0" ]; then
+        line0="^.${tagret//\\/\\\\}"
+        line1=""
+      else
+        line0="^${tagret//\\/\\\\}"
+        line1="^.*\\\\.${tagret//\\/\\\\}"
+      fi
+      [ -n "$line1" ] && sed -i "/\.\*\ \*/i\ \ \ \ ${line1}" /etc/sniproxy/sniproxy.conf
+      [ -n "$line0" ] && sed -i "/\.\*\ \*/i\ \ \ \ ${line0}" /etc/sniproxy/sniproxy.conf
       if [ -f "/etc/sniproxy/dnsmasq-lo.conf" ]; then
-        echo "${src}" |grep -q "\." && tbl=`echo "${src}" |sed 's/^\*//' |sed 's/^\.//' |sed 's/\.$//'` && echo "server=/${tbl}/${udns}#${uport}" >>"/etc/sniproxy/dnsmasq-lo.conf"
+        [ "${dst}" != "*" ] && echo "${src}" |grep -q "\." && tbl=`echo "${src}" |sed 's/^\*//' |sed 's/^\.//' |sed 's/\.$//'` && echo "server=/${tbl}/${udns}#${uport}" >>"/etc/sniproxy/dnsmasq-lo.conf"
       fi
     done
+    if [ "$fallback" != "1" ]; then
+      sed -i "/\.\*\ \*/d" /etc/sniproxy/sniproxy.conf
+    fi
   fi
 
   if [ -f /etc/sniproxy/dnsmasq-up.conf ]; then
@@ -54,4 +68,4 @@ touch "/.initialized"
 [ -f /etc/sniproxy/dnsmasq-lo.conf ] && /usr/sbin/dnsmasq -C /etc/sniproxy/dnsmasq-lo.conf
 
 /usr/sbin/sniproxy -V
-/usr/sbin/sniproxy -c /etc/sniproxy/sniproxy.conf -f
+exec /usr/sbin/sniproxy -c /etc/sniproxy/sniproxy.conf -f
