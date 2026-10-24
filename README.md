@@ -19,6 +19,6 @@ docker run --restart always --name sniproxy -p 80:80/tcp -p 443:443/tcp -p 53:53
 ```
 # apt install -y libarchive-tools
 wget -qO- https://github.com/MoeClub/sniproxy_docker/archive/refs/heads/main.zip | bsdtar -xvf - --strip-components=1 -C /mnt
-bash /mnt/buildx.sh 0.7.0 2.92
+bash /mnt/buildx.sh 0.7.0 2.93
 
 ```
