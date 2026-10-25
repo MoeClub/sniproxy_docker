@@ -7,13 +7,13 @@ withLatest="${3:-0}"
 dockerProject="sniproxy"
 dockerBase="alpine:3.20"
 dockerName="${dockerProject}_buildx"
-
+mntPath=`dirname "$(readlink -f "$0")"`
 
 manifest=""
 for arch in "amd64" "arm64"; do
   docker run --rm --platform "linux/${arch}" "${dockerBase}" apk --print-arch >/dev/null 2>&1 || docker run --privileged --rm tonistiigi/binfmt --install "${arch}"
   docker rm -f "${dockerName}" >/dev/null 2>&1 || true
-  docker run --platform "linux/${arch}" --name "${dockerName}" -id -v /mnt:/mnt "${dockerBase}"
+  docker run --platform "linux/${arch}" --name "${dockerName}" -id -v "${mntPath}:/mnt" "${dockerBase}"
   docker exec "${dockerName}" /bin/sh /mnt/commit.sh "${oneVer}" "${twoVer}"
   docker commit --change 'CMD ["/bin/sh", "/run.sh"]' "${dockerName}" "${dockerProject}_${arch}:${oneVer}"
   docker rm -f "${dockerName}" >/dev/null 2>&1 || true
