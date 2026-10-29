@@ -44,7 +44,7 @@ if [ ! -f "/.initialized" ]; then
     fi
   fi
   if [ -f /etc/sniproxy/dnsmasq-up.conf ]; then
-    sed -i "s/^server=.*/server=${udns}#${uport}/" "/etc/sniproxy/dnsmasq-up.conf"
+    sed -i "s|^server=[^/].*|server=${udns}#${uport}|" "/etc/sniproxy/dnsmasq-up.conf"
   fi
 
   if [ -f /etc/sniproxy/dnsmasq-lo.conf ]; then
