@@ -19,7 +19,7 @@ if [ ! -f "/.initialized" ]; then
   fallback=`printenv FALLBACK`
   [ "$fallback" == "0" ] || fallback="1"
   if [ -f /etc/sniproxy/sniproxy.conf ]; then
-    for item in `printenv "TABLE" |sed 's/;/\n/g'`; do
+    printenv "TABLE" | tr ';' '\n' | while IFS= read -r item; do
       echo "${item}" |grep -q "," || continue
       src="${item%%,*}"
       dst="${item#*,}"
